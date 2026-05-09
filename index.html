@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f59e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English King">
+<title>English King 👑</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--bg4:#475569;
+  --gold:#f59e0b;--gold2:#fcd34d;--gold3:#78350f;
+  --teal:#14b8a6;--teal2:#0d9488;
+  --red:#ef4444;--red-bg:#450a0a;--red-border:#7f1d1d;
+  --green:#22c55e;--green-bg:#052e16;--green-border:#14532d;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --radius:14px;--radius-sm:10px;
+  --shadow:0 4px 20px rgba(0,0,0,.4);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--text)}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
+.screen{display:none;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 14px 76px;scroll-behavior:smooth}
+.screen.active{display:flex}
+.scroll-inner{flex:1}
+
+/* NAV */
+.nav{display:flex;background:var(--bg2);border-top:1.5px solid var(--bg3);position:sticky;bottom:0;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 7px;border:none;background:none;color:var(--text3);cursor:pointer;font-size:10px;transition:.2s;position:relative}
+.nav-btn.active{color:var(--gold)}
+.nav-btn i{font-size:22px}
+.nav-btn::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;border-radius:0 0 2px 2px;background:transparent;transition:.2s}
+.nav-btn.active::after{background:var(--gold)}
+
+/* TYPOGRAPHY */
+h1{font-size:24px;font-weight:800;color:var(--gold);margin-bottom:4px}
+h2{font-size:16px;font-weight:700;margin-bottom:10px}
+.subtitle{color:var(--text2);font-size:13px;margin-bottom:16px}
+
+/* CARDS */
+.card{background:var(--bg2);border-radius:var(--radius);border:1px solid var(--bg3);padding:16px}
+.card-gold{border-color:var(--gold3)}
+
+/* FLASHCARD */
+.flashcard-area{perspective:1000px;margin:8px 0 12px;flex-shrink:0}
+.card-inner{position:relative;width:100%;height:190px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:pointer}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;border:2px solid var(--bg3);transition:border-color .3s,background .3s}
+.card-front{background:var(--bg2)}
+.card-back{background:var(--bg3);transform:rotateY(180deg)}
+.card-face.correct-flash{border-color:var(--green)!important;background:var(--green-bg)!important}
+.card-face.wrong-flash{border-color:var(--red)!important;background:var(--red-bg)!important}
+.word-en{font-size:30px;font-weight:800;color:var(--gold);line-height:1.2;word-break:break-word}
+.word-uz{font-size:22px;font-weight:700;color:var(--teal);margin-top:8px;word-break:break-word}
+.word-cat{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+.tap-hint{font-size:12px;color:var(--text3);margin-top:10px;display:flex;align-items:center;gap:4px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;margin-top:8px}
+.btn{border:none;border-radius:var(--radius-sm);padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.96);opacity:.85}
+.btn-gold{background:var(--gold);color:#0f172a}
+.btn-red{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-border)}
+.btn-green{background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-border)}
+.btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--bg3)}
+.btn-teal{background:var(--teal2);color:#fff}
+.btn-sm{padding:8px 12px;font-size:13px;border-radius:8px}
+
+/* PROGRESS */
+.progress-bar{width:100%;height:5px;background:var(--bg3);border-radius:3px;margin:6px 0}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .4s}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.stat{background:var(--bg2);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;border:1px solid var(--bg3)}
+.stat-num{font-size:22px;font-weight:800;line-height:1}
+.stat-lbl{font-size:10px;color:var(--text2);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:18px}
+.search-box{width:100%;background:var(--bg2);border:1.5px solid var(--bg3);border-radius:var(--radius-sm);padding:10px 14px 10px 38px;color:var(--text);font-size:14px;transition:.2s}
+.search-box::placeholder{color:var(--text3)}
+.search-box:focus{outline:none;border-color:var(--gold)}
+
+/* CHIPS */
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cat-chip{background:var(--bg2);border:1.5px solid var(--bg3);border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--text2);transition:.15s;white-space:nowrap}
+.cat-chip.active,.cat-chip:active{background:var(--gold);color:#0f172a;border-color:var(--gold)}
+
+/* DICT */
+.dict-list{display:flex;flex-direction:column;gap:5px}
+.dict-item{background:var(--bg2);border-radius:var(--radius-sm);padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--bg3)}
+.dict-en{font-weight:700;font-size:15px}
+.dict-uz{color:var(--teal);font-size:13px;margin-top:2px}
+.dict-cat-badge{font-size:10px;color:var(--text3);border:1px solid var(--bg3);border-radius:10px;padding:3px 8px;white-space:nowrap;margin-left:8px;flex-shrink:0}
+
+/* QUIZ */
+.quiz-q{background:var(--bg2);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:14px;border:1.5px solid var(--bg3)}
+.quiz-word{font-size:26px;font-weight:800;color:var(--gold);word-break:break-word}
+.quiz-dir{font-size:12px;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{background:var(--bg2);border:2px solid var(--bg3);border-radius:var(--radius-sm);padding:14px;font-size:15px;cursor:pointer;text-align:center;transition:.2s;font-weight:600}
+.quiz-opt:active{transform:scale(.98)}
+.quiz-opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.quiz-result{text-align:center;padding:30px 20px}
+.result-emoji{font-size:60px;margin-bottom:12px;display:block}
+.result-score{font-size:36px;font-weight:800;color:var(--gold)}
+.result-msg{color:var(--text2);font-size:15px;margin:8px 0 20px}
+
+/* BUILDER */
+.builder-board{background:var(--bg2);border-radius:var(--radius);padding:14px;margin-bottom:10px;min-height:72px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:center;border:2px dashed var(--bg3);transition:border-color .3s}
+.builder-board.correct-anim{border-color:var(--green);background:var(--green-bg)}
+.builder-board.wrong-anim{border-color:var(--red);background:var(--red-bg)}
+.builder-hint{color:var(--teal);font-size:14px;text-align:center;margin-bottom:8px;font-weight:600}
+.letter-tiles{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:10px;min-height:54px}
+.tile{width:46px;height:46px;border-radius:9px;background:var(--bg2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;cursor:pointer;color:var(--gold);transition:.15s;user-select:none;-webkit-user-select:none}
+.tile:active{transform:scale(.88)}
+.tile.used{opacity:.25;cursor:default;background:var(--bg3);border-color:var(--bg4);color:var(--text3);pointer-events:none}
+.board-tile{width:46px;height:46px;border-radius:9px;background:var(--bg3);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;cursor:pointer;color:var(--text);transition:.15s;user-select:none}
+.board-tile:active{transform:scale(.88)}
+.msg{text-align:center;padding:9px;border-radius:8px;font-size:14px;font-weight:700;margin:6px 0}
+.msg.ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.msg.err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+
+/* HOME */
+.home-header{text-align:center;padding:6px 0 12px}
+.crown-txt{font-size:44px;margin-bottom:2px}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.home-card{background:var(--bg2);border-radius:var(--radius);padding:18px 14px;cursor:pointer;border:1.5px solid var(--bg3);transition:.2s;text-align:left}
+.home-card:active{transform:scale(.97);border-color:var(--gold)}
+.home-card .hc-icon{font-size:30px;margin-bottom:8px;display:block}
+.home-card h3{font-size:14px;font-weight:700}
+.home-card p{font-size:12px;color:var(--text2);margin-top:3px}
+.streak-banner{background:linear-gradient(135deg,var(--gold3),#92400e);border-radius:var(--radius);padding:12px 16px;margin:8px 0;display:flex;align-items:center;gap:12px}
+.streak-num{font-size:28px;font-weight:800;color:var(--gold2)}
+.streak-txt{font-size:12px;color:#fde68a}
+
+/* SELECT */
+.sel{width:100%;background:var(--bg2);border:1.5px solid var(--bg3);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text);font-size:14px;margin-bottom:10px;cursor:pointer;-webkit-appearance:none}
+.sel:focus{outline:none;border-color:var(--gold)}
+
+/* SECTION HEADER */
+.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
+/* BADGE */
+.badge{display:inline-block;background:var(--gold);color:#0f172a;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
+
+/* INSTALL PROMPT */
+#install-btn{display:none;width:100%;margin-top:6px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+/* ANIMATIONS */
+@keyframes pop{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s ease}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div class="home-header">
+    <div class="crown-txt">👑</div>
+    <h1>English King</h1>
+    <p class="subtitle">So'z boyligingizni oshiring!</p>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num" id="h-total" style="color:var(--gold)">800</div><div class="stat-lbl">So'zlar</div></div>
+    <div class="stat"><div class="stat-num" id="h-known" style="color:var(--green)">0</div><div class="stat-lbl">Bilingan</div></div>
+    <div class="stat"><div class="stat-num" id="h-score" style="color:var(--gold2)">0</div><div class="stat-lbl">Ball</div></div>
+  </div>
+  <div class="streak-banner" id="streak-banner" style="display:none">
+    <div class="streak-num" id="streak-num">0</div>
+    <div><div style="font-size:14px;font-weight:700;color:var(--gold2)">🔥 Streak!</div><div class="streak-txt">Ketma-ket to'g'ri javoblar</div></div>
+  </div>
+  <div class="home-grid">
+    <div class="home-card" onclick="gotoScreen('s-flash')">
+      <span class="hc-icon">🃏</span>
+      <h3>Kartochkalar</h3>
+      <p>Yodlash & takrorlash</p>
+    </div>
+    <div class="home-card" onclick="gotoScreen('s-dict')">
+      <span class="hc-icon">📚</span>
+      <h3>Lug'at</h3>
+      <p>800+ so'z ko'rish</p>
+    </div>
+    <div class="home-card" onclick="gotoScreen('s-quiz')">
+      <span class="hc-icon">🎯</span>
+      <h3>Test</h3>
+      <p>Bilimni sinash</p>
+    </div>
+    <div class="home-card" onclick="gotoScreen('s-build')">
+      <span class="hc-icon">🧩</span>
+      <h3>So'z Yasash</h3>
+      <p>Harflardan so'z</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:6px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Kategoriyalar</div>
+    <div class="cats" id="home-cats"></div>
+  </div>
+  <button class="btn btn-teal" id="install-btn" onclick="installPWA()">
+    <i class="ti ti-download"></i> Ilovani o'rnatish (APK)
+  </button>
+</div>
+
+<!-- FLASHCARDS -->
+<div id="s-flash" class="screen">
+  <div class="sec-header">
+    <h1>Kartochkalar</h1>
+    <button class="btn btn-outline btn-sm" onclick="initFlash()"><i class="ti ti-refresh"></i></button>
+  </div>
+  <select class="sel" id="flash-cat" onchange="initFlash()"></select>
+  <div class="progress-bar"><div class="progress-fill" id="flash-prog" style="width:0%"></div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <span style="font-size:12px;color:var(--text2)" id="flash-counter">0 / 0</span>
+    <span style="font-size:12px;color:var(--text2)" id="flash-cat-lbl"></span>
+  </div>
+  <div class="flashcard-area" id="flash-card-wrap">
+    <div class="card-inner" id="flash-card" onclick="flipCard()">
+      <div class="card-face card-front" id="flash-front">
+        <div class="word-en" id="flash-en">—</div>
+        <div class="word-cat" id="flash-cat-show"></div>
+        <div class="tap-hint"><i class="ti ti-hand-finger"></i> Tarjimani ko'rish</div>
+      </div>
+      <div class="card-face card-back" id="flash-back">
+        <div class="word-en" style="font-size:22px" id="flash-en2">—</div>
+        <div class="word-uz" id="flash-uz">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row" id="flash-btns" style="display:none">
+    <button class="btn btn-red" onclick="flashAnswer(false)"><i class="ti ti-x"></i> Bilmadim</button>
+    <button class="btn btn-green" onclick="flashAnswer(true)"><i class="ti ti-check"></i> Bildim!</button>
+  </div>
+  <div class="btn-row" id="flash-next-row">
+    <button class="btn btn-outline" onclick="prevFlash()" id="flash-prev-btn" style="flex:0 0 48px"><i class="ti ti-arrow-left"></i></button>
+    <button class="btn btn-gold" onclick="nextFlash()" id="flash-next-btn">Keyingisi <i class="ti ti-arrow-right"></i></button>
+  </div>
+  <div class="stats-row" style="margin-top:8px">
+    <div class="stat"><div class="stat-num" style="color:var(--green)" id="f-known">0</div><div class="stat-lbl">Bildim</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--red)" id="f-unkn">0</div><div class="stat-lbl">Bilmadim</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--gold)" id="f-left">0</div><div class="stat-lbl">Qoldi</div></div>
+  </div>
+</div>
+
+<!-- DICTIONARY -->
+<div id="s-dict" class="screen">
+  <h1>Lug'at</h1>
+  <div class="search-wrap">
+    <i class="ti ti-search"></i>
+    <input class="search-box" type="text" placeholder="Inglizcha yoki O'zbekcha..." id="dict-search" oninput="renderDict()">
+  </div>
+  <div class="cats" id="dict-cats"></div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="dict-count"></div>
+  <div class="dict-list" id="dict-list"></div>
+</div>
+
+<!-- QUIZ -->
+<div id="s-quiz" class="screen">
+  <h1>Test</h1>
+  <div id="quiz-setup">
+    <select class="sel" id="quiz-cat"></select>
+    <select class="sel" id="quiz-mode">
+      <option value="en2uz">Inglizcha → O'zbekcha</option>
+      <option value="uz2en">O'zbekcha → Inglizcha</option>
+      <option value="both">Aralash</option>
+    </select>
+    <select class="sel" id="quiz-count">
+      <option value="10">10 savol</option>
+      <option value="20">20 savol</option>
+      <option value="30">30 savol</option>
+    </select>
+    <button class="btn btn-gold" onclick="startQuiz()" style="width:100%;padding:14px;font-size:16px;margin-bottom:12px">Testni boshlash 🎯</button>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" style="color:var(--gold)" id="q-best">0</div><div class="stat-lbl">Rekord</div></div>
+      <div class="stat"><div class="stat-num" id="q-played">0</div><div class="stat-lbl">O'ynaldi</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--teal)" id="q-avg">0%</div><div class="stat-lbl">O'rtacha</div></div>
+    </div>
+  </div>
+  <div id="quiz-game" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span class="badge" id="quiz-score-lbl">0 / 0</span>
+      <span style="color:var(--text2);font-size:13px" id="quiz-q-num">1 / 10</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="quiz-prog" style="width:0%"></div></div>
+    <div class="quiz-q">
+      <div class="quiz-dir" id="quiz-dir-lbl"></div>
+      <div class="quiz-word" id="quiz-word">—</div>
+    </div>
+    <div class="quiz-opts" id="quiz-opts"></div>
+  </div>
+  <div id="quiz-end" style="display:none">
+    <div class="quiz-result">
+      <span class="result-emoji" id="quiz-emoji">🎉</span>
+      <div class="result-score" id="quiz-final">0/10</div>
+      <div class="result-msg" id="quiz-msg"></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" style="color:var(--green)" id="qe-correct">0</div><div class="stat-lbl">To'g'ri</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--red)" id="qe-wrong">0</div><div class="stat-lbl">Noto'g'ri</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--gold)" id="qe-pct">0%</div><div class="stat-lbl">Foiz</div></div>
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="startQuiz()" style="width:100%;padding:14px;margin-bottom:8px">Qayta o'ynash 🔄</button>
+    <button class="btn btn-outline" onclick="backToQuizMenu()" style="width:100%;padding:12px">Menuga qaytish</button>
+  </div>
+</div>
+
+<!-- WORD BUILDER -->
+<div id="s-build" class="screen">
+  <div class="sec-header">
+    <h1>So'z Yasash</h1>
+    <button class="btn btn-outline btn-sm" onclick="newBuildWord()"><i class="ti ti-refresh"></i></button>
+  </div>
+  <select class="sel" id="build-cat" onchange="newBuildWord()"></select>
+  <div class="builder-hint" id="build-hint">Tarjima: —</div>
+  <div class="builder-board" id="build-board">
+    <span style="color:var(--text3);font-size:13px">Harflarni bosing...</span>
+  </div>
+  <div class="letter-tiles" id="build-tiles"></div>
+  <div id="build-msg"></div>
+  <div class="btn-row">
+    <button class="btn btn-red btn-sm" onclick="clearBoard()"><i class="ti ti-backspace"></i> Tozala</button>
+    <button class="btn btn-gold" onclick="checkBuild()"><i class="ti ti-check"></i> Tekshir</button>
+    <button class="btn btn-outline btn-sm" onclick="newBuildWord()"><i class="ti ti-skip-forward"></i> O'tkazib</button>
+  </div>
+  <div class="stats-row" style="margin-top:10px">
+    <div class="stat"><div class="stat-num" style="color:var(--green)" id="b-correct">0</div><div class="stat-lbl">To'g'ri</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--gold)" id="b-streak">0</div><div class="stat-lbl">Streak</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--teal)" id="b-score">0</div><div class="stat-lbl">Ball</div></div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="gotoScreen('s-home')"><i class="ti ti-home"></i>Bosh</button>
+  <button class="nav-btn" id="nav-flash" onclick="gotoScreen('s-flash')"><i class="ti ti-cards"></i>Kartalar</button>
+  <button class="nav-btn" id="nav-dict" onclick="gotoScreen('s-dict')"><i class="ti ti-book-2"></i>Lug'at</button>
+  <button class="nav-btn" id="nav-quiz" onclick="gotoScreen('s-quiz')"><i class="ti ti-target"></i>Test</button>
+  <button class="nav-btn" id="nav-build" onclick="gotoScreen('s-build')"><i class="ti ti-puzzle"></i>Yasash</button>
+</nav>
+</div>
+
+<script>
+// ============================================================
+// VOCABULARY DATA — 800+ words
+// ============================================================
+const WORDS = [
+// ANIMALS
+["cat","mushuk","animals"],["dog","it","animals"],["bird","qush","animals"],["fish","baliq","animals"],["horse","ot","animals"],
+["cow","sigir","animals"],["sheep","qo'y","animals"],["goat","echki","animals"],["pig","cho'chqa","animals"],["chicken","tovuq","animals"],
+["duck","o'rdak","animals"],["rabbit","quyon","animals"],["mouse","sichqon","animals"],["rat","kalamush","animals"],["snake","ilon","animals"],
+["lion","sher","animals"],["tiger","yo'lbars","animals"],["elephant","fil","animals"],["bear","ayiq","animals"],["wolf","bo'ri","animals"],
+["fox","tulki","animals"],["monkey","maymun","animals"],["giraffe","jirafa","animals"],["zebra","zebra","animals"],["camel","tuya","animals"],
+["deer","kiyik","animals"],["eagle","burgut","animals"],["owl","boyqush","animals"],["parrot","to'ti","animals"],["penguin","pingvin","animals"],
+["dolphin","delfin","animals"],["whale","kit","animals"],["shark","akula","animals"],["frog","qurbaqa","animals"],["turtle","toshbaqa","animals"],
+["crocodile","timsoh","animals"],["butterfly","kapalak","animals"],["bee","ari","animals"],["ant","chumoli","animals"],["spider","o'rgimchak","animals"],
+["donkey","eshak","animals"],["buffalo","buyvol","animals"],["lamb","qo'zi","animals"],["puppy","kuchukcha","animals"],["kitten","mushukcha","animals"],
+["chick","jo'ja","animals"],["swan","oqqush","animals"],["peacock","tovus","animals"],["crow","qarg'a","animals"],["pigeon","kabutar","animals"],
+["sparrow","chumchuq","animals"],["stork","laylak","animals"],["flamingo","flamingo","animals"],["bat","ko'rshapalak","animals"],["squirrel","olmaxon","animals"],
+["hedgehog","tipratikan","animals"],["panda","panda","animals"],["gorilla","gorilla","animals"],["cheetah","gepard","animals"],["leopard","qoplon","animals"],
+// FOOD
+["apple","olma","food"],["banana","banan","food"],["orange","apelsin","food"],["grape","uzum","food"],["mango","mango","food"],
+["watermelon","tarvuz","food"],["strawberry","qulupnay","food"],["lemon","limon","food"],["pear","nok","food"],["peach","shaftoli","food"],
+["bread","non","food"],["rice","guruch","food"],["meat","go'sht","food"],["egg","tuxum","food"],["milk","sut","food"],
+["butter","sariyog'","food"],["cheese","pishloq","food"],["sugar","shakar","food"],["salt","tuz","food"],["pepper","qalampir","food"],
+["potato","kartoshka","food"],["tomato","pomidor","food"],["onion","piyoz","food"],["garlic","sarimsoq","food"],["carrot","sabzi","food"],
+["cucumber","bodring","food"],["mushroom","qo'ziqorin","food"],["beans","loviya","food"],["corn","makkajo'xori","food"],["pea","no'xat","food"],
+["soup","sho'rva","food"],["salad","salat","food"],["pizza","pitsa","food"],["cake","tort","food"],["cookie","pechenye","food"],
+["chocolate","shokolad","food"],["coffee","qahva","food"],["tea","choy","food"],["water","suv","food"],["juice","sharbat","food"],
+["yogurt","qatiq","food"],["honey","asal","food"],["jam","murabbo","food"],["noodles","lagmon","food"],["cherry","gilos","food"],
+["melon","qovun","food"],["plum","olcha","food"],["apricot","o'rik","food"],["fig","anjir","food"],["pomegranate","anor","food"],
+["walnut","yong'oq","food"],["almond","bodom","food"],["pistachio","pista","food"],["raisin","mayiz","food"],["pasta","makaron","food"],
+["burger","burger","food"],["sandwich","sendvich","food"],["porridge","bo'tqa","food"],["ice cream","muzqaymoq","food"],["sausage","kolbasa","food"],
+// BODY
+["head","bosh","body"],["hair","soch","body"],["eye","ko'z","body"],["ear","quloq","body"],["nose","burun","body"],
+["mouth","og'iz","body"],["tooth","tish","body"],["tongue","til","body"],["neck","bo'yin","body"],["shoulder","yelka","body"],
+["arm","qo'l","body"],["hand","kaft","body"],["finger","barmoq","body"],["chest","ko'krak","body"],["stomach","qorin","body"],
+["back","orqa","body"],["leg","oyoq","body"],["knee","tizza","body"],["foot","oyoq kaftи","body"],["heart","yurak","body"],
+["brain","miya","body"],["blood","qon","body"],["bone","suyak","body"],["skin","teri","body"],["face","yuz","body"],
+["lip","lab","body"],["chin","iyak","body"],["cheek","yonoq","body"],["forehead","peshona","body"],["eyebrow","qosh","body"],
+["eyelash","kiprik","body"],["thumb","bosh barmoq","body"],["wrist","bilak","body"],["elbow","tirsak","body"],["ankle","to'pig'","body"],
+// COLORS
+["red","qizil","colors"],["blue","ko'k","colors"],["green","yashil","colors"],["yellow","sariq","colors"],["orange","to'q sariq","colors"],
+["purple","binafsha","colors"],["pink","pushti","colors"],["white","oq","colors"],["black","qora","colors"],["brown","jigarrang","colors"],
+["gray","kulrang","colors"],["gold","oltin","colors"],["silver","kumush","colors"],["dark","to'q","colors"],["light","och","colors"],
+["beige","bej","colors"],["cyan","moviy","colors"],["maroon","to'q qizil","colors"],["turquoise","feruza","colors"],["violet","binafsha","colors"],
+// NUMBERS
+["one","bir","numbers"],["two","ikki","numbers"],["three","uch","numbers"],["four","to'rt","numbers"],["five","besh","numbers"],
+["six","olti","numbers"],["seven","yetti","numbers"],["eight","sakkiz","numbers"],["nine","to'qqiz","numbers"],["ten","o'n","numbers"],
+["eleven","o'n bir","numbers"],["twelve","o'n ikki","numbers"],["twenty","yigirma","numbers"],["thirty","o'ttiz","numbers"],["forty","qirq","numbers"],
+["fifty","ellik","numbers"],["hundred","yuz","numbers"],["thousand","ming","numbers"],["million","million","numbers"],["zero","nol","numbers"],
+// NATURE
+["sun","quyosh","nature"],["moon","oy","nature"],["star","yulduz","nature"],["sky","osmon","nature"],["cloud","bulut","nature"],
+["rain","yomg'ir","nature"],["snow","qor","nature"],["wind","shamol","nature"],["storm","bo'ron","nature"],["thunder","momaqaldiroq","nature"],
+["tree","daraxt","nature"],["flower","gul","nature"],["grass","o't","nature"],["forest","o'rmon","nature"],["mountain","tog'","nature"],
+["river","daryo","nature"],["lake","ko'l","nature"],["sea","dengiz","nature"],["ocean","okean","nature"],["island","orol","nature"],
+["desert","cho'l","nature"],["fire","olov","nature"],["stone","tosh","nature"],["leaf","barg","nature"],["seed","urug'","nature"],
+["root","ildiz","nature"],["branch","shox","nature"],["sand","qum","nature"],["wave","to'lqin","nature"],["earthquake","zilzila","nature"],
+["rainbow","kamalak","nature"],["ice","muz","nature"],["fog","tuman","nature"],["tornado","tornado","nature"],["volcano","vulqon","nature"],
+["cave","g'or","nature"],["waterfall","sharshar","nature"],["jungle","tropik o'rmon","nature"],["valley","vodiy","nature"],["hill","tepalik","nature"],
+// HOME
+["house","uy","home"],["room","xona","home"],["door","eshik","home"],["window","deraza","home"],["wall","devor","home"],
+["floor","pol","home"],["roof","tom","home"],["kitchen","oshxona","home"],["bedroom","yotoqxona","home"],["bathroom","hammom","home"],
+["table","stol","home"],["chair","stul","home"],["bed","karavot","home"],["sofa","divan","home"],["lamp","chiroq","home"],
+["mirror","oyna","home"],["clock","soat","home"],["book","kitob","home"],["phone","telefon","home"],["computer","kompyuter","home"],
+["television","televizor","home"],["refrigerator","muzlatgich","home"],["stove","plita","home"],["key","kalit","home"],["bag","sumka","home"],
+["cup","piyola","home"],["plate","tovoq","home"],["spoon","qoshiq","home"],["fork","vilka","home"],["knife","pichoq","home"],
+["pillow","yostiq","home"],["blanket","ko'rpa","home"],["curtain","parda","home"],["shelf","javon","home"],["drawer","tortma","home"],
+["stairs","zinapoya","home"],["balcony","balkon","home"],["garden","bog'","home"],["fence","devor","home"],["gate","darvoza","home"],
+// CLOTHING
+["shirt","ko'ylak","clothing"],["pants","shim","clothing"],["dress","ko'ylak","clothing"],["jacket","kurtka","clothing"],["coat","palto","clothing"],
+["shoes","poyabzal","clothing"],["boots","etik","clothing"],["hat","shapka","clothing"],["scarf","sharf","clothing"],["gloves","qo'lqop","clothing"],
+["socks","paypoq","clothing"],["belt","kamar","clothing"],["tie","galstuk","clothing"],["skirt","yubka","clothing"],["suit","kostyum","clothing"],
+["sweater","sviter","clothing"],["jeans","jins","clothing"],["t-shirt","futbolka","clothing"],["cap","kepka","clothing"],["uniform","forma","clothing"],
+["underwear","ichki kiyim","clothing"],["pajamas","pijama","clothing"],["swimsuit","kupalnik","clothing"],["vest","jilet","clothing"],["raincoat","yomg'irpush","clothing"],
+// TRANSPORT
+["car","mashina","transport"],["bus","avtobus","transport"],["train","poyezd","transport"],["plane","samolyot","transport"],["bike","velosiped","transport"],
+["ship","kema","transport"],["taxi","taksi","transport"],["metro","metro","transport"],["truck","yuk mashinasi","transport"],["road","yo'l","transport"],
+["bridge","ko'prik","transport"],["airport","aeroport","transport"],["station","bekat","transport"],["ticket","chipta","transport"],["passport","pasport","transport"],
+["motorcycle","mototsikl","transport"],["helicopter","vertolyot","transport"],["rocket","raketa","transport"],["ambulance","tez yordam","transport"],["tram","tramvay","transport"],
+// EMOTIONS
+["happy","xursand","emotions"],["sad","xafa","emotions"],["angry","g'azablangan","emotions"],["afraid","qo'rqqan","emotions"],["surprised","hayron","emotions"],
+["tired","charchagan","emotions"],["excited","hayajonlangan","emotions"],["bored","zerikkan","emotions"],["proud","g'ururli","emotions"],["lonely","yolg'iz","emotions"],
+["love","muhabbat","emotions"],["hate","nafrat","emotions"],["hope","umid","emotions"],["worry","xavotir","emotions"],["calm","tinch","emotions"],
+["joy","quvonch","emotions"],["fear","qo'rquv","emotions"],["shame","uyat","emotions"],["trust","ishonch","emotions"],["pain","og'riq","emotions"],
+["jealous","rashk","emotions"],["nervous","asabiy","emotions"],["confused","chalg'igan","emotions"],["grateful","minnatdor","emotions"],["generous","saxiy","emotions"],
+// VERBS
+["eat","yemoq","verbs"],["drink","ichmoq","verbs"],["sleep","uxlamoq","verbs"],["walk","yurmoq","verbs"],["run","yugurmoq","verbs"],
+["sit","o'tirmoq","verbs"],["stand","turmoq","verbs"],["jump","sakramoq","verbs"],["swim","suzmoq","verbs"],["fly","uchmoq","verbs"],
+["read","o'qimoq","verbs"],["write","yozmoq","verbs"],["speak","gapirmoq","verbs"],["listen","tinglamoq","verbs"],["see","ko'rmoq","verbs"],
+["look","qaramoq","verbs"],["hear","eshitmoq","verbs"],["smell","hidlamoq","verbs"],["touch","tegmoq","verbs"],["taste","tatib ko'rmoq","verbs"],
+["work","ishlamoq","verbs"],["play","o'ynamoq","verbs"],["study","o'qimoq","verbs"],["teach","o'qitmoq","verbs"],["learn","o'rganmoq","verbs"],
+["think","o'ylamoq","verbs"],["know","bilmoq","verbs"],["want","istamoq","verbs"],["need","kerak bo'lmoq","verbs"],["help","yordam bermoq","verbs"],
+["buy","sotib olmoq","verbs"],["sell","sotmoq","verbs"],["give","bermoq","verbs"],["take","olmoq","verbs"],["make","yasamoq","verbs"],
+["open","ochmoq","verbs"],["close","yopmoq","verbs"],["start","boshlаmoq","verbs"],["finish","tugatmoq","verbs"],["come","kelmoq","verbs"],
+["go","bormoq","verbs"],["bring","olib kelmoq","verbs"],["find","topmoq","verbs"],["lose","yo'qotmoq","verbs"],["win","yutmoq","verbs"],
+["cook","pishirmoq","verbs"],["clean","tozalamoq","verbs"],["wash","yuvmoq","verbs"],["build","qurmoq","verbs"],["fix","ta'mirlamoq","verbs"],
+["drive","haydamoq","verbs"],["travel","sayohat qilmoq","verbs"],["call","qo'ng'iroq qilmoq","verbs"],["send","jo'natmoq","verbs"],["pay","to'lamoq","verbs"],
+["choose","tanlаmoq","verbs"],["change","o'zgartirmoq","verbs"],["show","ko'rsatmoq","verbs"],["wait","kutmoq","verbs"],["try","urinib ko'rmoq","verbs"],
+["catch","ushlamoq","verbs"],["throw","otmoq","verbs"],["push","itarmoq","verbs"],["pull","tortmoq","verbs"],["cut","kesmoq","verbs"],
+["break","sindirmoq","verbs"],["carry","ko'tarmoq","verbs"],["put","qo'ymoq","verbs"],["get","olmoq","verbs"],["keep","saqlаmoq","verbs"],
+["meet","uchrashmoq","verbs"],["use","ishlatmoq","verbs"],["ask","so'ramoq","verbs"],["answer","javob bermoq","verbs"],["explain","tushuntirmoq","verbs"],
+// ADJECTIVES
+["big","katta","adjectives"],["small","kichik","adjectives"],["tall","baland","adjectives"],["short","past","adjectives"],["long","uzun","adjectives"],
+["wide","keng","adjectives"],["narrow","tor","adjectives"],["heavy","og'ir","adjectives"],["light","yengil","adjectives"],["fast","tez","adjectives"],
+["slow","sekin","adjectives"],["hot","issiq","adjectives"],["cold","sovuq","adjectives"],["warm","iliq","adjectives"],["old","eski","adjectives"],
+["new","yangi","adjectives"],["young","yosh","adjectives"],["good","yaxshi","adjectives"],["bad","yomon","adjectives"],["beautiful","chiroyli","adjectives"],
+["ugly","xunuk","adjectives"],["clean","toza","adjectives"],["dirty","iflos","adjectives"],["easy","oson","adjectives"],["hard","qiyin","adjectives"],
+["rich","boy","adjectives"],["poor","kambag'al","adjectives"],["strong","kuchli","adjectives"],["weak","kuchsiz","adjectives"],["healthy","sog'lom","adjectives"],
+["smart","aqlli","adjectives"],["kind","mehribon","adjectives"],["funny","kulgili","adjectives"],["serious","jiddiy","adjectives"],["brave","jasur","adjectives"],
+["lazy","dangasa","adjectives"],["busy","band","adjectives"],["free","erkin","adjectives"],["safe","xavfsiz","adjectives"],["dangerous","xavfli","adjectives"],
+["important","muhim","adjectives"],["interesting","qiziqarli","adjectives"],["boring","zerikarli","adjectives"],["delicious","mazali","adjectives"],["awful","dahshatli","adjectives"],
+// TIME
+["today","bugun","time"],["yesterday","kecha","time"],["tomorrow","erta","time"],["now","hozir","time"],["soon","tez orada","time"],
+["morning","ertalab","time"],["afternoon","tushdan keyin","time"],["evening","kechqurun","time"],["night","kecha","time"],["midnight","yarim tun","time"],
+["week","hafta","time"],["month","oy","time"],["year","yil","time"],["hour","soat","time"],["minute","daqiqa","time"],
+["second","soniya","time"],["Monday","Dushanba","time"],["Tuesday","Seshanba","time"],["Wednesday","Chorshanba","time"],["Thursday","Payshanba","time"],
+["Friday","Juma","time"],["Saturday","Shanba","time"],["Sunday","Yakshanba","time"],["January","Yanvar","time"],["February","Fevral","time"],
+["March","Mart","time"],["April","Aprel","time"],["May","May","time"],["June","Iyun","time"],["July","Iyul","time"],
+["August","Avgust","time"],["September","Sentabr","time"],["October","Oktabr","time"],["November","Noyabr","time"],["December","Dekabr","time"],
+["spring","bahor","time"],["summer","yoz","time"],["autumn","kuz","time"],["winter","qish","time"],["century","asr","time"],
+// FAMILY
+["mother","ona","family"],["father","ota","family"],["sister","singil","family"],["brother","aka","family"],["grandmother","buvi","family"],
+["grandfather","bobo","family"],["son","o'g'il","family"],["daughter","qiz","family"],["husband","er","family"],["wife","xotin","family"],
+["baby","chaqaloq","family"],["child","bola","family"],["family","oila","family"],["friend","do'st","family"],["neighbor","qo'shni","family"],
+["uncle","amaki","family"],["aunt","xola","family"],["cousin","amakivacha","family"],["nephew","jiyан","family"],["niece","jiyan qiz","family"],
+["parents","ota-ona","family"],["twins","egizaklar","family"],["ancestor","ajdod","family"],["relative","qarindosh","family"],["guest","mehmon","family"],
+// SCHOOL & WORK
+["school","maktab","school"],["university","universitet","school"],["class","sinf","school"],["lesson","dars","school"],["homework","uyga vazifa","school"],
+["exam","imtihon","school"],["grade","baho","school"],["pencil","qalam","school"],["pen","ruchka","school"],["notebook","daftar","school"],
+["dictionary","lug'at","school"],["library","kutubxona","school"],["office","ofis","school"],["hospital","kasalxona","school"],["shop","do'kon","school"],
+["bank","bank","school"],["hotel","mehmonxona","school"],["park","bog'","school"],["city","shahar","school"],["country","mamlakat","school"],
+["street","ko'cha","school"],["money","pul","school"],["job","ish","school"],["salary","maosh","school"],["meeting","uchrashuv","school"],
+["problem","muammo","school"],["idea","g'oya","school"],["question","savol","school"],["answer","javob","school"],["project","loyiha","school"],
+["team","jamoa","school"],["manager","menejer","school"],["employee","xodim","school"],["customer","mijoz","school"],["contract","shartnoma","school"],
+["success","muvaffaqiyat","school"],["failure","muvaffaqiyatsizlik","school"],["goal","maqsad","school"],["plan","reja","school"],["result","natija","school"],
+// HEALTH
+["doctor","shifokor","health"],["nurse","hamshira","health"],["medicine","dori","health"],["hospital","kasalxona","health"],["headache","bosh og'rig'i","health"],
+["fever","isitma","health"],["cough","yo'tal","health"],["cold","shamollash","health"],["allergy","allergiya","health"],["pain","og'riq","health"],
+["tablet","tabletka","health"],["injection","ukol","health"],["surgery","operatsiya","health"],["recovery","tiklanish","health"],["healthy","sog'lom","health"],
+// TECHNOLOGY
+["internet","internet","tech"],["website","veb-sayt","tech"],["password","parol","tech"],["email","elektron pochta","tech"],["message","xabar","tech"],
+["photo","rasm","tech"],["video","video","tech"],["battery","batareya","tech"],["screen","ekran","tech"],["keyboard","klaviatura","tech"],
+["printer","printer","tech"],["camera","kamera","tech"],["robot","robot","tech"],["application","ilova","tech"],["download","yuklash","tech"]
+];
+
+const CATS = [...new Set(WORDS.map(w => w[2]))];
+
+// ============================================================
+// STATE
+// ============================================================
+let score = 0, knownWords = new Set(), totalStreak = 0;
+let quizBest = 0, quizPlayed = 0, quizTotalScore = 0, quizTotalQ = 0;
+let flashWords = [], flashIdx = 0, flashKnown = 0, flashUnkn = 0, flashFlipped = false;
+let quizWords = [], quizIdx = 0, quizScore = 0, quizAnswered = false, quizTotal = 10;
+let buildWord = '', buildSelected = [], buildUsed = [], buildOrder = [];
+let buildCorrect = 0, buildStreak = 0, buildScore = 0;
+let dictCat = 'all';
+let deferredPrompt = null;
+
+// Load saved state
+try {
+  const saved = JSON.parse(localStorage.getItem('engking') || '{}');
+  score = saved.score || 0;
+  knownWords = new Set(saved.known || []);
+  quizBest = saved.quizBest || 0;
+  quizPlayed = saved.quizPlayed || 0;
+  totalStreak = saved.streak || 0;
+} catch(e) {}
+
+function saveState() {
+  try {
+    localStorage.setItem('engking', JSON.stringify({
+      score, known: [...knownWords], quizBest, quizPlayed, streak: totalStreak
+    }));
+  } catch(e) {}
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function gotoScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = {'s-home':'nav-home','s-flash':'nav-flash','s-dict':'nav-dict','s-quiz':'nav-quiz','s-build':'nav-build'};
+  document.getElementById(map[id]).classList.add('active');
+  if (id === 's-dict') renderDict();
+  if (id === 's-flash') initFlash();
+  if (id === 's-build') newBuildWord();
+  updateHome();
+}
+
+function updateHome() {
+  document.getElementById('h-known').textContent = knownWords.size;
+  document.getElementById('h-score').textContent = score;
+  document.getElementById('h-total').textContent = WORDS.length;
+  const sb = document.getElementById('streak-banner');
+  if (totalStreak >= 3) {
+    sb.style.display = 'flex';
+    document.getElementById('streak-num').textContent = totalStreak;
+  } else sb.style.display = 'none';
+}
+
+// ============================================================
+// INIT SELECTS
+// ============================================================
+function initSelects() {
+  const opts = '<option value="all">Barcha kategoriyalar</option>' +
+    CATS.map(c => `<option value="${c}">${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('');
+  ['flash-cat','quiz-cat','build-cat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+  document.getElementById('home-cats').innerHTML =
+    CATS.map(c => `<div class="cat-chip" onclick="quickCat('${c}',this)">${c}</div>`).join('');
+  renderDictCats();
+}
+
+function quickCat(cat, el) {
+  document.querySelectorAll('#home-cats .cat-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('flash-cat').value = cat;
+  gotoScreen('s-flash');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function shuffle(arr) { return [...arr].sort(() => Math.random() - .5); }
+function getWords(cat) { return cat === 'all' ? WORDS : WORDS.filter(w => w[2] === cat); }
+function addScore(n) { score += n; totalStreak++; saveState(); updateHome(); }
+function subScore(n) { score = Math.max(0, score - n); totalStreak = 0; saveState(); updateHome(); }
+
+// ============================================================
+// FLASHCARDS
+// ============================================================
+function initFlash() {
+  const cat = document.getElementById('flash-cat').value;
+  flashWords = shuffle(getWords(cat));
+  flashIdx = 0; flashKnown = 0; flashUnkn = 0; flashFlipped = false;
+  document.getElementById('f-known').textContent = 0;
+  document.getElementById('f-unkn').textContent = 0;
+  showFlashCard();
+}
+
+function showFlashCard() {
+  if (flashIdx >= flashWords.length) {
+    document.getElementById('flash-en').textContent = '🎉 Tamom!';
+    document.getElementById('flash-cat-show').textContent = `${flashKnown} bildim · ${flashUnkn} bilmadim`;
+    document.getElementById('flash-en2').textContent = '';
+    document.getElementById('flash-uz').textContent = '';
+    document.getElementById('flash-btns').style.display = 'none';
+    document.getElementById('flash-next-row').style.display = 'flex';
+    document.getElementById('flash-next-btn').textContent = 'Qayta boshlash ↺';
+    document.getElementById('flash-next-btn').onclick = initFlash;
+    document.getElementById('flash-counter').textContent = `${flashWords.length} / ${flashWords.length}`;
+    document.getElementById('flash-prog').style.width = '100%';
+    document.getElementById('f-left').textContent = 0;
+    return;
+  }
+  const w = flashWords[flashIdx];
+  flashFlipped = false;
+  const card = document.getElementById('flash-card');
+  card.classList.remove('flipped');
+  document.getElementById('flash-front').className = 'card-face card-front';
+  document.getElementById('flash-back').className = 'card-face card-back';
+  document.getElementById('flash-en').textContent = w[0];
+  document.getElementById('flash-cat-show').textContent = w[2];
+  document.getElementById('flash-en2').textContent = w[0];
+  document.getElementById('flash-uz').textContent = w[1];
+  document.getElementById('flash-btns').style.display = 'none';
+  document.getElementById('flash-next-row').style.display = 'flex';
+  document.getElementById('flash-next-btn').textContent = 'Keyingisi →';
+  document.getElementById('flash-next-btn').onclick = nextFlash;
+  const total = flashWords.length;
+  document.getElementById('flash-counter').textContent = `${flashIdx + 1} / ${total}`;
+  document.getElementById('flash-prog').style.width = ((flashIdx / total) * 100) + '%';
+  document.getElementById('f-left').textContent = total - flashIdx - 1;
+}
+
+function flipCard() {
+  if (flashFlipped) return;
+  flashFlipped = true;
+  document.getElementById('flash-card').classList.add('flipped');
+  document.getElementById('flash-btns').style.display = 'flex';
+  document.getElementById('flash-next-row').style.display = 'none';
+}
+
+function flashAnswer(knew) {
+  if (knew) {
+    flashKnown++;
+    knownWords.add(flashWords[flashIdx][0]);
+    addScore(10);
+    document.getElementById('flash-back').className = 'card-face card-back correct-flash';
+    document.getElementById('flash-front').className = 'card-face card-front correct-flash';
+  } else {
+    flashUnkn++;
+    subScore(2);
+    document.getElementById('flash-back').className = 'card-face card-back wrong-flash';
+    document.getElementById('flash-front').className = 'card-face card-front wrong-flash';
+  }
+  document.getElementById('f-known').textContent = flashKnown;
+  document.getElementById('f-unkn').textContent = flashUnkn;
+  setTimeout(() => { flashIdx++; showFlashCard(); }, 650);
+}
+
+function nextFlash() {
+  if (!flashFlipped) { flipCard(); return; }
+  flashIdx++; showFlashCard();
+}
+
+function prevFlash() {
+  if (flashIdx > 0) { flashIdx--; showFlashCard(); }
+}
+
+// ============================================================
+// DICTIONARY
+// ============================================================
+function renderDictCats() {
+  const dc = document.getElementById('dict-cats');
+  if (!dc) return;
+  dc.innerHTML = '<div class="cat-chip active" onclick="setDictCat(\'all\',this)">Hammasi</div>' +
+    CATS.map(c => `<div class="cat-chip" onclick="setDictCat('${c}',this)">${c}</div>`).join('');
+}
+
+function setDictCat(cat, el) {
+  dictCat = cat;
+  document.querySelectorAll('#dict-cats .cat-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderDict();
+}
+
+function renderDict() {
+  const q = (document.getElementById('dict-search') || {}).value?.toLowerCase() || '';
+  const list = WORDS.filter(w => {
+    const mc = dictCat === 'all' || w[2] === dictCat;
+    const mq = !q || w[0].toLowerCase().includes(q) || w[1].toLowerCase().includes(q);
+    return mc && mq;
+  });
+  document.getElementById('dict-count').textContent = `${list.length} so'z topildi`;
+  document.getElementById('dict-list').innerHTML = list.slice(0, 200).map(w =>
+    `<div class="dict-item">
+      <div><div class="dict-en">${w[0]}</div><div class="dict-uz">${w[1]}</div></div>
+      <div class="dict-cat-badge">${w[2]}</div>
+    </div>`
+  ).join('');
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+function startQuiz() {
+  document.getElementById('quiz-setup').style.display = 'none';
+  document.getElementById('quiz-end').style.display = 'none';
+  document.getElementById('quiz-game').style.display = 'block';
+  const cat = document.getElementById('quiz-cat').value;
+  const mode = document.getElementById('quiz-mode').value;
+  quizTotal = parseInt(document.getElementById('quiz-count').value);
+  quizWords = shuffle(getWords(cat)).slice(0, quizTotal);
+  quizIdx = 0; quizScore = 0; quizAnswered = false;
+  window._quizMode = mode;
+  document.getElementById('quiz-score-lbl').textContent = '0 / 0';
+  showQuizQ();
+}
+
+function showQuizQ() {
+  if (quizIdx >= quizWords.length) { endQuiz(); return; }
+  quizAnswered = false;
+  const w = quizWords[quizIdx];
+  const mode = window._quizMode;
+  const actualMode = mode === 'both' ? (Math.random() > .5 ? 'en2uz' : 'uz2en') : mode;
+  window._currentMode = actualMode;
+  const question = actualMode === 'en2uz' ? w[0] : w[1];
+  const correctLabel = actualMode === 'en2uz' ? w[1] : w[0];
+  document.getElementById('quiz-dir-lbl').textContent = actualMode === 'en2uz' ? "Inglizcha → O'zbekcha" : "O'zbekcha → Inglizcha";
+  document.getElementById('quiz-word').textContent = question;
+  document.getElementById('quiz-q-num').textContent = `${quizIdx + 1} / ${quizTotal}`;
+  document.getElementById('quiz-prog').style.width = ((quizIdx / quizTotal) * 100) + '%';
+  const cat = document.getElementById('quiz-cat').value;
+  const pool = shuffle(getWords(cat)).filter(x => x[0] !== w[0]).slice(0, 3);
+  const opts = shuffle([w, ...pool]);
+  document.getElementById('quiz-opts').innerHTML = opts.map(o => {
+    const label = actualMode === 'en2uz' ? o[1] : o[0];
+    const isCorrect = o[0] === w[0];
+    return `<div class="quiz-opt" onclick="quizAnswer(this,${isCorrect},'${correctLabel.replace(/'/g,"\\'")}')">${label}</div>`;
+  }).join('');
+}
+
+function quizAnswer(el, correct, rightAns) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  if (correct) {
+    quizScore++;
+    addScore(15);
+    knownWords.add(quizWords[quizIdx][0]);
+    el.classList.add('correct');
+  } else {
+    subScore(5);
+    el.classList.add('wrong');
+    document.querySelectorAll('.quiz-opt').forEach(o => {
+      if (o.textContent === rightAns) o.classList.add('correct');
+    });
+  }
+  document.getElementById('quiz-score-lbl').textContent = `${quizScore} / ${quizIdx + 1}`;
+  setTimeout(() => { quizIdx++; showQuizQ(); }, 950);
+}
+
+function endQuiz() {
+  quizPlayed++;
+  if (quizScore > quizBest) quizBest = quizScore;
+  quizTotalScore += quizScore;
+  quizTotalQ += quizTotal;
+  saveState();
+  document.getElementById('quiz-game').style.display = 'none';
+  document.getElementById('quiz-end').style.display = 'block';
+  document.getElementById('quiz-final').textContent = `${quizScore}/${quizTotal}`;
+  const pct = quizScore / quizTotal;
+  const emojis = ['😢','😐','🙂','😊','🎉','🏆'];
+  document.getElementById('quiz-emoji').textContent = emojis[Math.min(5, Math.floor(pct * 6))];
+  const msgs = ['Ko\'proq mashq qiling!','Yaxshi boshlanish!','Zo\'r!','Ajoyib!','Juda yaxshi!','MUKAMMAL! 👑'];
+  document.getElementById('quiz-msg').textContent = msgs[Math.min(5, Math.floor(pct * 6))];
+  document.getElementById('qe-correct').textContent = quizScore;
+  document.getElementById('qe-wrong').textContent = quizTotal - quizScore;
+  document.getElementById('qe-pct').textContent = Math.round(pct * 100) + '%';
+  document.getElementById('q-best').textContent = quizBest;
+  document.getElementById('q-played').textContent = quizPlayed;
+  document.getElementById('q-avg').textContent = quizTotalQ ? Math.round(quizTotalScore / quizTotalQ * 100) + '%' : '0%';
+}
+
+function backToQuizMenu() {
+  document.getElementById('quiz-end').style.display = 'none';
+  document.getElementById('quiz-game').style.display = 'none';
+  document.getElementById('quiz-setup').style.display = 'block';
+}
+
+// ============================================================
+// WORD BUILDER
+// ============================================================
+function newBuildWord() {
+  const cat = document.getElementById('build-cat').value;
+  const pool = getWords(cat).filter(w => w[0].length >= 3 && w[0].length <= 9 && !/[\s'-]/.test(w[0]));
+  if (!pool.length) return;
+  const w = pool[Math.floor(Math.random() * pool.length)];
+  buildWord = w[0].toLowerCase();
+  buildSelected = [];
+  buildUsed = new Array(buildWord.length).fill(false);
+  document.getElementById('build-hint').textContent = `Tarjima: ${w[1]}  (${w[2]})`;
+  document.getElementById('build-msg').innerHTML = '';
+  document.getElementById('build-board').className = 'builder-board';
+  renderBuildTiles();
+  renderBoard();
+}
+
+function renderBuildTiles() {
+  const letters = buildWord.split('').map((l, i) => ({l, i}));
+  buildOrder = shuffle(letters);
+  document.getElementById('build-tiles').innerHTML = buildOrder.map(obj =>
+    `<div class="tile" onclick="addTile(${obj.i},this)" data-idx="${obj.i}">${obj.l.toUpperCase()}</div>`
+  ).join('');
+}
+
+function renderBoard() {
+  const board = document.getElementById('build-board');
+  if (buildSelected.length === 0) {
+    board.innerHTML = '<span style="color:var(--text3);font-size:13px">Harflarni bosing...</span>';
+  } else {
+    board.innerHTML = buildSelected.map((s, i) =>
+      `<div class="board-tile" onclick="removeTile(${i})">${s.l.toUpperCase()}</div>`
+    ).join('');
+  }
+}
+
+function addTile(idx, el) {
+  if (buildUsed[idx]) return;
+  buildUsed[idx] = true;
+  buildSelected.push({l: buildWord[idx], i: idx});
+  el.classList.add('used');
+  renderBoard();
+}
+
+function removeTile(pos) {
+  const s = buildSelected.splice(pos, 1)[0];
+  buildUsed[s.i] = false;
+  document.querySelector(`.tile[data-idx="${s.i}"]`)?.classList.remove('used');
+  renderBoard();
+}
+
+function clearBoard() {
+  buildSelected = [];
+  buildUsed = new Array(buildWord.length).fill(false);
+  document.querySelectorAll('.tile').forEach(t => t.classList.remove('used'));
+  document.getElementById('build-msg').innerHTML = '';
+  document.getElementById('build-board').className = 'builder-board';
+  renderBoard();
+}
+
+function checkBuild() {
+  const attempt = buildSelected.map(s => s.l).join('');
+  const msg = document.getElementById('build-msg');
+  const board = document.getElementById('build-board');
+  if (attempt === buildWord) {
+    msg.innerHTML = '<div class="msg ok">✓ To\'g\'ri! +20 ball 🎉</div>';
+    board.className = 'builder-board correct-anim';
+    buildCorrect++;
+    buildStreak++;
+    buildScore += 20;
+    addScore(20);
+    document.getElementById('b-correct').textContent = buildCorrect;
+    document.getElementById('b-streak').textContent = buildStreak;
+    document.getElementById('b-score').textContent = buildScore;
+    setTimeout(newBuildWord, 1200);
+  } else if (attempt.length === buildWord.length) {
+    msg.innerHTML = '<div class="msg err">✗ Noto\'g\'ri! Qayta urining</div>';
+    board.className = 'builder-board wrong-anim';
+    board.classList.add('shake');
+    buildStreak = 0;
+    subScore(3);
+    document.getElementById('b-streak').textContent = 0;
+    setTimeout(() => { board.className = 'builder-board'; msg.innerHTML = ''; }, 1000);
+  } else {
+    msg.innerHTML = '<div class="msg err">Avval to\'liq so\'z yasang</div>';
+    setTimeout(() => msg.innerHTML = '', 800);
+  }
+}
+
+// ============================================================
+// PWA INSTALL
+// ============================================================
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'flex';
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') document.getElementById('install-btn').style.display = 'none';
+      deferredPrompt = null;
+    });
+  }
+}
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+initSelects();
+initFlash();
+renderDict();
+newBuildWord();
+updateHome();
+</script>
+</body>
+</html>
